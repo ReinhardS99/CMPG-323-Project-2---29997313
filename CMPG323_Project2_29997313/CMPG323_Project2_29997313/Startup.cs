@@ -9,6 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using CMPG323_Project2_29997313;
+using CMPG323_Project2_29997313.Models;
+using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
+
 
 namespace JWTAuthentication
 {
@@ -28,6 +33,38 @@ namespace JWTAuthentication
 
             // For Entity Framework  
             services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("ConnStr")));
+
+            services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer("name=ConnectionStrings:ConnStr"));
+
+            services.AddSwaggerGen(c => {
+                c.SwaggerDoc("v2", new OpenApiInfo
+                {
+                    Title = "JWTToken_Auth_API",
+                    Version = "v2"
+                });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "JWT Authorization header using the Bearer scheme. \r\n\r\n Enter 'Bearer' [space] and then your token in the text input below.\r\n\r\nExample: \"Bearer 1safsfsdfdfd\"",
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference {
+                    Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+            });
+
+
 
             // For Identity  
             services.AddIdentity<ApplicationUser, IdentityRole>()
@@ -75,6 +112,8 @@ namespace JWTAuthentication
             {
                 endpoints.MapControllers();
             });
+            app.UseSwagger(); 
+            app.UseSwaggerUI(options => options.SwaggerEndpoint("/swagger/v2/swagger.json", "CMPG323_Project2"));
         }
     }
 }
